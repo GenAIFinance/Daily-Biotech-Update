@@ -148,10 +148,6 @@ Make your changes
 Test locally
 Submit a pull request
 
-License
-MIT License - see LICENSE file for details.
-Support
-For issues or questions:
 
 Check the GitHub Issues tab
 Review GitHub Actions logs
