@@ -1,0 +1,27 @@
+general:
+  lookback_days: 3
+  timezone: "America/New_York"
+  max_articles_per_source: 50
+  retry_attempts: 3
+  retry_delay: 1.0
+
+database:
+  path: "biotech_updates.db"
+  backup_frequency: 7
+
+logging:
+  level: "INFO"
+  file: "logs/biotech_update.log"
+  max_size: "10MB"
+  backup_count: 5
+
+filtering:
+  min_word_count: 10
+  excluded_keywords: ["spam", "advertisement", "promotional"]
+  relevance_threshold: 0.0
+
+features:
+  enable_dashboard: true
+  enable_analytics: true
+
+sources_file: "data_sources.json"
