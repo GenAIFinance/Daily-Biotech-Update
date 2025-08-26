@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Novo Nordisk News",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.novonordisk.com/bin/rss/news.xml",
+    "enabled": true,
+    "keywords": ["novo nordisk", "ozempic", "wegovy", "semaglutide", "glp-1", "obesity", "diabetes"]
+  },
+  {
+    "name": "Eli Lilly News",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://investor.lilly.com/rss/news-releases",
+    "enabled": true,
+    "keywords": ["eli lilly", "mounjaro", "zepbound", "tirzepatide", "glp-1", "gip", "obesity", "diabetes"]
+  },
+  {
+    "name": "BioPharma Dive",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.biopharmadive.com/feeds/news/",
+    "enabled": true,
+    "keywords": ["biotech", "pharmaceutical", "fda", "glp-1", "obesity"]
+  },
+  {
+    "name": "FierceBiotech",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.fiercebiotech.com/rss/xml",
+    "enabled": true,
+    "keywords": ["biotech", "clinical trial", "obesity", "metabolic"]
+  },
+  {
+    "name": "Endpoints News",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://endpts.com/feed/",
+    "enabled": true,
+    "keywords": ["biotech", "pharma", "clinical", "fda", "obesity", "glp-1"]
+  },
+  {
+    "name": "STAT News",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.statnews.com/feed/",
+    "enabled": true,
+    "keywords": ["biotech", "pharmaceutical", "obesity", "glp-1", "weight loss"]
+  },
+  {
+    "name": "Acumen Pharmaceuticals News",
+    "category": "ABOS",
+    "type": "rss",
+    "url": "https://ir.acumenpharm.com/rss/news-releases",
+    "enabled": true,
+    "keywords": ["alzheimer", "dementia", "neurology", "abos"]
+  },
+  {
+    "name": "ALX Oncology News",
+    "category": "ALXO",
+    "type": "rss",
+    "url": "https://ir.alxoncology.com/rss/news-releases",
+    "enabled": true,
+    "keywords": ["oncology", "cancer", "adc", "alxo"]
+  },
+  {
+    "name": "Amgen News",
+    "category": "AMGN",
+    "type": "rss",
+    "url": "https://www.amgen.com/media/news-releases/rss",
+    "enabled": true,
+    "keywords": ["biosimilar", "oncology", "amgen", "amg 133", "obesity"]
+  },
+  {
+    "name": "Regeneron News",
+    "category": "REGN",
+    "type": "rss",
+    "url": "https://investor.regeneron.com/rss/news-releases",
+    "enabled": true,
+    "keywords": ["eylea", "dupixent", "libtayo", "regeneron"]
+  },
+  {
+    "name": "Jasper Therapeutics News",
+    "category": "JSPR",
+    "type": "rss",
+    "url": "https://ir.jaspertherapeutics.com/rss/news-releases",
+    "enabled": true,
+    "keywords": ["stem cell", "transplant", "jasper"]
+  }
+]
