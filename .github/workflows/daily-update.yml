@@ -1,0 +1,28 @@
+name: Daily Biotech Update
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # 7 AM EST
+  workflow_dispatch:
+
+jobs:
+  send-biotech-update:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - run: pip install feedparser requests beautifulsoup4 python-dateutil pyyaml pandas matplotlib seaborn python-dotenv
+    - run: python enhanced_daily_biotech_update.py
+      env:
+        EMAIL_ENABLED: true
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USER: ${{ secrets.SMTP_USER }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        REPORT_SENDER: ${{ secrets.REPORT_SENDER }}
+        REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS }}
+        REPORT_SUBJECT: "Daily Biotech Update - {date}"
+        SOURCES_FILE: "data_sources.json"
