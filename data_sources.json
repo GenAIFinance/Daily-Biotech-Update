@@ -1,11 +1,182 @@
 [
   {
+    "name": "Acumen Pharmaceuticals — SEC Filings",
+    "category": "ABOS",
+    "type": "sec",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001576885&output=atom",
+    "enabled": true,
+    "cik": "0001576885"
+  },
+  {
+    "name": "ALX Oncology — SEC Filings",
+    "category": "ALXO",
+    "type": "sec",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001810182&output=atom",
+    "enabled": true,
+    "cik": "0001810182"
+  },
+  {
+    "name": "Amgen — SEC Filings",
+    "category": "AMGN",
+    "type": "sec",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000318154&output=atom",
+    "enabled": true,
+    "cik": "0000318154"
+  },
+  {
+    "name": "Regeneron — SEC Filings",
+    "category": "REGN",
+    "type": "sec",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000872589&output=atom",
+    "enabled": true,
+    "cik": "0000872589"
+  },
+  {
+    "name": "Jasper Therapeutics — SEC Filings",
+    "category": "JSPR",
+    "type": "sec",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001788028&output=atom",
+    "enabled": true,
+    "cik": "0001788028"
+  },
+  {
+    "name": "Acumen Pharmaceuticals — Clinical Trials",
+    "category": "ABOS",
+    "type": "clinical_trial",
+    "url": "https://clinicaltrials.gov/api/v2/studies",
+    "enabled": true,
+    "company_terms": ["Acumen Pharmaceuticals", "ABOS", "ACU193", "sabirnetug"]
+  },
+  {
+    "name": "ALX Oncology — Clinical Trials",
+    "category": "ALXO",
+    "type": "clinical_trial",
+    "url": "https://clinicaltrials.gov/api/v2/studies",
+    "enabled": true,
+    "company_terms": ["ALX Oncology", "ALXO", "evorpacept", "ALX148"]
+  },
+  {
+    "name": "Amgen — Clinical Trials",
+    "category": "AMGN",
+    "type": "clinical_trial",
+    "url": "https://clinicaltrials.gov/api/v2/studies",
+    "enabled": true,
+    "company_terms": ["Amgen", "AMGN", "AMG", "sotorasib", "lumakras", "tezepelumab"]
+  },
+  {
+    "name": "Regeneron — Clinical Trials",
+    "category": "REGN",
+    "type": "clinical_trial",
+    "url": "https://clinicaltrials.gov/api/v2/studies",
+    "enabled": true,
+    "company_terms": ["Regeneron", "REGN", "dupilumab", "dupixent", "eylea", "aflibercept"]
+  },
+  {
+    "name": "Jasper Therapeutics — Clinical Trials",
+    "category": "JSPR",
+    "type": "clinical_trial",
+    "url": "https://clinicaltrials.gov/api/v2/studies",
+    "enabled": true,
+    "company_terms": ["Jasper Therapeutics", "JSPR", "JSP191", "lenzilumab"]
+  },
+  {
+    "name": "Acumen Pharmaceuticals — Press Releases",
+    "category": "ABOS",
+    "type": "rss",
+    "url": "https://www.globenewswire.com/RSS/company/9134?symbol=ABOS",
+    "enabled": true
+  },
+  {
+    "name": "ALX Oncology — News Releases",
+    "category": "ALXO",
+    "type": "rss",
+    "url": "https://ir.alxoncology.com/rss/news-releases",
+    "enabled": true
+  },
+  {
+    "name": "Regeneron — Press Releases",
+    "category": "REGN",
+    "type": "rss",
+    "url": "https://www.globenewswire.com/RSS/company/5679",
+    "enabled": true
+  },
+  {
+    "name": "Jasper Therapeutics — News Releases",
+    "category": "JSPR",
+    "type": "html",
+    "url": "https://ir.jaspertherapeutics.com/press-releases",
+    "enabled": true
+  },
+  {
+    "name": "Amgen — PR Newswire Releases",
+    "category": "AMGN",
+    "type": "html",
+    "url": "https://www.prnewswire.com/news-releases/news-releases-list/?searchTerms=Amgen",
+    "enabled": true
+  },
+  {
+    "name": "FDA Press Releases",
+    "category": "Industry",
+    "type": "fda",
+    "url": "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml",
+    "enabled": true,
+    "keywords": ["drug", "approval", "biotech", "pharmaceutical", "therapeutic"]
+  },
+  {
+    "name": "FDA Drug Approvals and Safety",
+    "category": "Industry",
+    "type": "fda",
+    "url": "https://www.fda.gov/drugs/drug-safety-and-availability/rss.xml",
+    "enabled": true,
+    "keywords": ["approval", "drug", "safety", "warning"]
+  },
+  {
+    "name": "EMA News & Press Releases",
+    "category": "Industry",
+    "type": "ema",
+    "url": "https://www.ema.europa.eu/en/news.xml",
+    "enabled": true,
+    "keywords": ["medicine", "approval", "recommendation", "chmp"]
+  },
+  {
+    "name": "Gene & Cell Therapy — ASGCT News",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.asgct.org/rss/news",
+    "enabled": true,
+    "keywords": ["gene therapy", "cell therapy", "car-t", "crispr"]
+  },
+  {
+    "name": "GLP-1 & Obesity — Reuters Health",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.reuters.com/finance/healthcare/feed",
+    "enabled": true,
+    "keywords": ["glp-1", "obesity", "diabetes", "semaglutide", "tirzepatide"]
+  },
+  {
+    "name": "BioPharma Dive — Latest News",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.biopharmadive.com/feeds/news/",
+    "enabled": true,
+    "keywords": ["biotech", "pharmaceutical", "clinical trial"]
+  },
+  {
+    "name": "FierceBiotech — Latest News",
+    "category": "Industry",
+    "type": "rss",
+    "url": "https://www.fiercebiotech.com/rss/xml",
+    "enabled": true,
+    "keywords": ["biotech", "clinical", "fda", "approval"]
+  },
+  {
     "name": "Novo Nordisk News",
     "category": "Industry",
     "type": "rss",
     "url": "https://www.novonordisk.com/bin/rss/news.xml",
     "enabled": true,
-    "keywords": ["novo nordisk", "ozempic", "wegovy", "semaglutide", "glp-1", "obesity", "diabetes"]
+    "keywords": ["glp-1", "diabetes", "obesity", "semaglutide"]
   },
   {
     "name": "Eli Lilly News",
@@ -13,78 +184,6 @@
     "type": "rss",
     "url": "https://investor.lilly.com/rss/news-releases",
     "enabled": true,
-    "keywords": ["eli lilly", "mounjaro", "zepbound", "tirzepatide", "glp-1", "gip", "obesity", "diabetes"]
-  },
-  {
-    "name": "BioPharma Dive",
-    "category": "Industry",
-    "type": "rss",
-    "url": "https://www.biopharmadive.com/feeds/news/",
-    "enabled": true,
-    "keywords": ["biotech", "pharmaceutical", "fda", "glp-1", "obesity"]
-  },
-  {
-    "name": "FierceBiotech",
-    "category": "Industry",
-    "type": "rss",
-    "url": "https://www.fiercebiotech.com/rss/xml",
-    "enabled": true,
-    "keywords": ["biotech", "clinical trial", "obesity", "metabolic"]
-  },
-  {
-    "name": "Endpoints News",
-    "category": "Industry",
-    "type": "rss",
-    "url": "https://endpts.com/feed/",
-    "enabled": true,
-    "keywords": ["biotech", "pharma", "clinical", "fda", "obesity", "glp-1"]
-  },
-  {
-    "name": "STAT News",
-    "category": "Industry",
-    "type": "rss",
-    "url": "https://www.statnews.com/feed/",
-    "enabled": true,
-    "keywords": ["biotech", "pharmaceutical", "obesity", "glp-1", "weight loss"]
-  },
-  {
-    "name": "Acumen Pharmaceuticals News",
-    "category": "ABOS",
-    "type": "rss",
-    "url": "https://ir.acumenpharm.com/rss/news-releases",
-    "enabled": true,
-    "keywords": ["alzheimer", "dementia", "neurology", "abos"]
-  },
-  {
-    "name": "ALX Oncology News",
-    "category": "ALXO",
-    "type": "rss",
-    "url": "https://ir.alxoncology.com/rss/news-releases",
-    "enabled": true,
-    "keywords": ["oncology", "cancer", "adc", "alxo"]
-  },
-  {
-    "name": "Amgen News",
-    "category": "AMGN",
-    "type": "rss",
-    "url": "https://www.amgen.com/media/news-releases/rss",
-    "enabled": true,
-    "keywords": ["biosimilar", "oncology", "amgen", "amg 133", "obesity"]
-  },
-  {
-    "name": "Regeneron News",
-    "category": "REGN",
-    "type": "rss",
-    "url": "https://investor.regeneron.com/rss/news-releases",
-    "enabled": true,
-    "keywords": ["eylea", "dupixent", "libtayo", "regeneron"]
-  },
-  {
-    "name": "Jasper Therapeutics News",
-    "category": "JSPR",
-    "type": "rss",
-    "url": "https://ir.jaspertherapeutics.com/rss/news-releases",
-    "enabled": true,
-    "keywords": ["stem cell", "transplant", "jasper"]
+    "keywords": ["diabetes", "obesity", "tirzepatide", "mounjaro"]
   }
 ]
