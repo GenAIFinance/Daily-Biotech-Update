@@ -492,6 +492,7 @@ class BiotechUpdateManager:
                 'smtp_password': os.getenv('SMTP_PASSWORD', ''),
                 'sender': os.getenv('REPORT_SENDER', ''),
                 'recipients': self._parse_recipients(os.getenv('REPORT_RECIPIENTS', '')),
+                'bcc': self._parse_recipients(os.getenv('REPORT_BCC', '')),
                 'subject': os.getenv('REPORT_SUBJECT', 'Daily Biotech Update - {date}')
             },
             'webhook': {
@@ -2039,3 +2040,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
