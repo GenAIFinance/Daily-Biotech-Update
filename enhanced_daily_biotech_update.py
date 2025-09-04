@@ -492,6 +492,7 @@ class BiotechUpdateManager:
                 'smtp_password': os.getenv('SMTP_PASSWORD', ''),
                 'sender': os.getenv('REPORT_SENDER', ''),
                 'recipients': self._parse_recipients(os.getenv('REPORT_RECIPIENTS', '')),
+                'cc': self._parse_recipients(os.getenv('REPORT_CC', '')),
                 'bcc': self._parse_recipients(os.getenv('REPORT_BCC', '')),
                 'subject': os.getenv('REPORT_SUBJECT', 'Daily Biotech Update - {date}')
             },
@@ -1527,65 +1528,65 @@ class BiotechUpdateManager:
         
         return html_parts
 
-  def send_email_report(self, html_report: str) -> bool:
-    """Send email report with CC/BCC support"""
-    email_config = self.config.get('email', {})
-    
-    if not email_config.get('enabled', True):
-        logging.info("Email sending disabled in configuration")
-        return False
-    
-    required_fields = ['smtp_host', 'smtp_port', 'sender', 'recipients']
-    for field in required_fields:
-        if not email_config.get(field):
-            logging.error(f"Missing email configuration: {field}")
+    def send_email_report(self, html_report: str) -> bool:
+        """Send email report with CC/BCC support"""
+        email_config = self.config.get('email', {})
+        
+        if not email_config.get('enabled', True):
+            logging.info("Email sending disabled in configuration")
             return False
-    
-    try:
-        msg = EmailMessage()
-        msg['Subject'] = email_config['subject'].format(date=datetime.now(self.tz).strftime('%Y-%m-%d'))
-        msg['From'] = email_config['sender']
-        msg['To'] = email_config['recipients']
         
-        # Add CC recipients if provided
-        if email_config.get('cc'):
-            msg['Cc'] = email_config['cc']
-            logging.info(f"Adding CC recipients: {len(email_config['cc'])}")
+        required_fields = ['smtp_host', 'smtp_port', 'sender', 'recipients']
+        for field in required_fields:
+            if not email_config.get(field):
+                logging.error(f"Missing email configuration: {field}")
+                return False
         
-        # Add BCC recipients if provided
-        if email_config.get('bcc'):
-            msg['Bcc'] = email_config['bcc']
-            logging.info(f"Adding BCC recipients: {len(email_config['bcc'])}")
-        
-        msg.set_content("This email contains an HTML biotech update report.")
-        msg.add_alternative(html_report, subtype='html')
-        
-        # Prepare all recipients for SMTP (To + CC + BCC)
-        all_recipients = email_config['recipients'][:]
-        if email_config.get('cc'):
-            all_recipients.extend(email_config['cc'])
-        if email_config.get('bcc'):
-            all_recipients.extend(email_config['bcc'])
-        
-        smtp_class = smtplib.SMTP_SSL if email_config['smtp_port'] == 465 else smtplib.SMTP
-        
-        with smtp_class(email_config['smtp_host'], email_config['smtp_port']) as server:
-            if email_config['smtp_port'] != 465:
-                server.starttls()
+        try:
+            msg = EmailMessage()
+            msg['Subject'] = email_config['subject'].format(date=datetime.now(self.tz).strftime('%Y-%m-%d'))
+            msg['From'] = email_config['sender']
+            msg['To'] = email_config['recipients']
             
-            if email_config.get('smtp_user') and email_config.get('smtp_password'):
-                server.login(email_config['smtp_user'], email_config['smtp_password'])
+            # Add CC recipients if provided
+            if email_config.get('cc'):
+                msg['Cc'] = email_config['cc']
+                logging.info(f"Adding CC recipients: {len(email_config['cc'])}")
             
-            # Send to all recipients (SMTP server handles CC/BCC)
-            server.send_message(msg, to_addrs=all_recipients)
-        
-        total_recipients = len(all_recipients)
-        logging.info(f"Email sent successfully to {total_recipients} recipients (TO: {len(email_config['recipients'])}, CC: {len(email_config.get('cc', []))}, BCC: {len(email_config.get('bcc', []))})")
-        return True
-        
-    except Exception as e:
-        logging.error(f"Failed to send email: {e}")
-        return False
+            # Note: BCC recipients are NOT added to message headers
+            # They are only included in the SMTP envelope (to_addrs parameter)
+            if email_config.get('bcc'):
+                logging.info(f"Adding BCC recipients: {len(email_config['bcc'])}")
+            
+            msg.set_content("This email contains an HTML biotech update report.")
+            msg.add_alternative(html_report, subtype='html')
+            
+            # Prepare all recipients for SMTP (To + CC + BCC)
+            all_recipients = email_config['recipients'][:]
+            if email_config.get('cc'):
+                all_recipients.extend(email_config['cc'])
+            if email_config.get('bcc'):
+                all_recipients.extend(email_config['bcc'])
+            
+            smtp_class = smtplib.SMTP_SSL if email_config['smtp_port'] == 465 else smtplib.SMTP
+            
+            with smtp_class(email_config['smtp_host'], email_config['smtp_port']) as server:
+                if email_config['smtp_port'] != 465:
+                    server.starttls()
+                
+                if email_config.get('smtp_user') and email_config.get('smtp_password'):
+                    server.login(email_config['smtp_user'], email_config['smtp_password'])
+                
+                # Send to all recipients (SMTP server handles CC/BCC)
+                server.send_message(msg, to_addrs=all_recipients)
+            
+            total_recipients = len(all_recipients)
+            logging.info(f"Email sent successfully to {total_recipients} recipients (TO: {len(email_config['recipients'])}, CC: {len(email_config.get('cc', []))}, BCC: {len(email_config.get('bcc', []))})")
+            return True
+            
+        except Exception as e:
+            logging.error(f"Failed to send email: {e}")
+            return False
 
     def get_analytics_summary(self) -> Dict[str, Any]:
         """Get analytics summary from database"""
@@ -1916,6 +1917,8 @@ SMTP_USER=your.email@gmail.com
 SMTP_PASSWORD=your-gmail-app-password
 REPORT_SENDER=your.email@gmail.com
 REPORT_RECIPIENTS=recipient1@example.com,recipient2@example.com
+REPORT_CC=cc1@example.com,cc2@example.com
+REPORT_BCC=bcc1@example.com,bcc2@example.com
 REPORT_SUBJECT=Daily Biotech Update - {date}
 
 # WEBHOOK NOTIFICATIONS (Optional)
@@ -2059,5 +2062,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
