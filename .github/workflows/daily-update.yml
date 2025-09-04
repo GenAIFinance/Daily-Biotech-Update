@@ -2,21 +2,40 @@ name: Daily Biotech Update with Artifacts
 on:
   schedule:
     - cron: '0 12 * * *'  # 7 AM EST (12 PM UTC)
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
   send-biotech-update:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
     
-    - uses: actions/setup-python@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.11'
+        cache: 'pip'
     
-    - name: Install dependencies
-      run: pip install feedparser requests beautifulsoup4 python-dateutil pyyaml pandas matplotlib seaborn python-dotenv
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install feedparser requests beautifulsoup4 python-dateutil pyyaml pandas matplotlib seaborn python-dotenv
+    
+    - name: Verify required files exist
+      run: |
+        echo "Checking for required files..."
+        if [ ! -f "enhanced_daily_biotech_update.py" ]; then
+          echo "ERROR: enhanced_daily_biotech_update.py not found!"
+          exit 1
+        fi
+        if [ ! -f "data_sources.json" ]; then
+          echo "ERROR: data_sources.json not found!"
+          echo "Creating default data sources file..."
+          python enhanced_daily_biotech_update.py --create-sources
+        fi
+        echo "All required files present."
     
     - name: Run biotech update workflow
       run: python enhanced_daily_biotech_update.py
@@ -28,105 +47,163 @@ jobs:
         SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         REPORT_SENDER: ${{ secrets.REPORT_SENDER }}
         REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS }}
+        REPORT_CC: ${{ secrets.REPORT_CC }}
         REPORT_BCC: ${{ secrets.REPORT_BCC }}
         REPORT_SUBJECT: "Daily Biotech Update - {date}"
         SOURCES_FILE: "data_sources.json"
         ENABLE_CLINICAL_TRIALS: true
         ENABLE_ANALYTICS: true
+        ENABLE_DASHBOARD: true
+        MIN_WORD_COUNT: 10
+        RELEVANCE_THRESHOLD: 0.0
+        LOOKBACK_DAYS: 3
+        CLINICAL_TRIALS_LOOKBACK_DAYS: 30
+    
+    - name: Verify workflow execution
+      run: |
+        if [ -f "biotech_updates.db" ]; then
+          echo "✓ Database created successfully"
+          DB_SIZE=$(stat -c%s "biotech_updates.db" 2>/dev/null || echo "0")
+          echo "Database size: ${DB_SIZE} bytes"
+        else
+          echo "⚠ Warning: No database file created"
+        fi
+        
+        if [ -d "logs" ] && [ -f "logs/biotech_update.log" ]; then
+          echo "✓ Logs directory exists"
+          echo "Recent log entries:"
+          tail -10 "logs/biotech_update.log" || echo "Could not read log file"
+        else
+          echo "⚠ Warning: No logs directory found"
+        fi
     
     - name: Create exports directory
       run: mkdir -p exports
-    
-    - name: Export analysis data
-      run: python -c "
+      
+    - name: Create export script
+      run: |
+        cat > export_data.py << 'EOF'
         import sqlite3
         import pandas as pd
         import json
         from datetime import datetime
         from pathlib import Path
+        import sys
         
-        if Path('biotech_updates.db').exists():
-            conn = sqlite3.connect('biotech_updates.db')
-            
-            # Export all articles
-            articles_df = pd.read_sql_query('''
-                SELECT title, link, published, summary, source_name, category,
-                       source_type, filing_type, trial_phase, trial_status,
-                       relevance_score, sentiment_score, word_count, created_at
-                FROM articles ORDER BY published DESC
-            ''', conn)
-            articles_df.to_csv('exports/all_articles.csv', index=False)
-            
-            # Export recent articles (last 30 days)
-            recent_df = pd.read_sql_query('''
-                SELECT * FROM articles 
-                WHERE created_at >= datetime('now', '-30 days')
-                ORDER BY published DESC
-            ''', conn)
-            recent_df.to_csv('exports/recent_articles.csv', index=False)
-            
-            # Export by source type
-            for source_type in ['sec', 'fda', 'ema', 'clinical_trial', 'rss']:
-                type_df = pd.read_sql_query(f'''
+        def export_data():
+            try:
+                if not Path('biotech_updates.db').exists():
+                    print('No database file found')
+                    return False
+                
+                print('Connecting to database...')
+                conn = sqlite3.connect('biotech_updates.db')
+                
+                # Export all articles
+                print('Exporting all articles...')
+                articles_df = pd.read_sql_query('''
+                    SELECT title, link, published, summary, source_name, category,
+                           source_type, filing_type, trial_phase, trial_status,
+                           relevance_score, sentiment_score, word_count, created_at
+                    FROM articles ORDER BY published DESC
+                ''', conn)
+                articles_df.to_csv('exports/all_articles.csv', index=False)
+                
+                # Export recent articles (last 30 days)
+                print('Exporting recent articles...')
+                recent_df = pd.read_sql_query('''
                     SELECT * FROM articles 
-                    WHERE source_type = '{source_type}'
+                    WHERE created_at >= datetime("now", "-30 days")
                     ORDER BY published DESC
                 ''', conn)
-                if not type_df.empty:
-                    type_df.to_csv(f'exports/{source_type}_articles.csv', index=False)
-            
-            # Export by company
-            for company in ['ABOS', 'ALXO', 'AMGN', 'REGN', 'JSPR']:
-                company_df = pd.read_sql_query(f'''
-                    SELECT * FROM articles 
-                    WHERE category = '{company}'
-                    ORDER BY published DESC
+                recent_df.to_csv('exports/recent_articles.csv', index=False)
+                
+                # Export by source type
+                print('Exporting by source type...')
+                for source_type in ['sec', 'fda', 'ema', 'clinical_trial', 'rss']:
+                    type_df = pd.read_sql_query('''
+                        SELECT * FROM articles 
+                        WHERE source_type = ? 
+                        ORDER BY published DESC
+                    ''', conn, params=[source_type])
+                    if not type_df.empty:
+                        type_df.to_csv(f'exports/{source_type}_articles.csv', index=False)
+                        print(f'  - {source_type}: {len(type_df)} articles')
+                
+                # Export by company
+                print('Exporting by company...')
+                for company in ['ABOS', 'ALXO', 'AMGN', 'REGN', 'JSPR']:
+                    company_df = pd.read_sql_query('''
+                        SELECT * FROM articles 
+                        WHERE category = ? 
+                        ORDER BY published DESC
+                    ''', conn, params=[company])
+                    if not company_df.empty:
+                        company_df.to_csv(f'exports/{company}_articles.csv', index=False)
+                        print(f'  - {company}: {len(company_df)} articles')
+                
+                # Export analytics summary
+                print('Generating analytics...')
+                analytics = {}
+                
+                source_counts = pd.read_sql_query('''
+                    SELECT source_type, COUNT(*) as count
+                    FROM articles GROUP BY source_type
                 ''', conn)
-                if not company_df.empty:
-                    company_df.to_csv(f'exports/{company}_articles.csv', index=False)
-            
-            # Export analytics summary
-            analytics = {}
-            
-            source_counts = pd.read_sql_query('''
-                SELECT source_type, COUNT(*) as count
-                FROM articles GROUP BY source_type
-            ''', conn)
-            analytics['by_source_type'] = source_counts.to_dict('records')
-            
-            category_counts = pd.read_sql_query('''
-                SELECT category, COUNT(*) as count
-                FROM articles GROUP BY category
-            ''', conn)
-            analytics['by_category'] = category_counts.to_dict('records')
-            
-            top_articles = pd.read_sql_query('''
-                SELECT title, source_name, relevance_score, published
-                FROM articles ORDER BY relevance_score DESC LIMIT 20
-            ''', conn)
-            analytics['top_articles'] = top_articles.to_dict('records')
-            
-            daily_counts = pd.read_sql_query('''
-                SELECT DATE(published) as date, COUNT(*) as count
-                FROM articles GROUP BY DATE(published)
-                ORDER BY date DESC LIMIT 90
-            ''', conn)
-            analytics['daily_article_counts'] = daily_counts.to_dict('records')
-            
-            analytics['export_timestamp'] = datetime.now().isoformat()
-            analytics['total_articles'] = len(articles_df)
-            analytics['recent_articles'] = len(recent_df)
-            
-            with open('exports/analytics_summary.json', 'w') as f:
-                json.dump(analytics, f, indent=2, default=str)
-            
-            conn.close()
-            print(f'Exported {len(articles_df)} total articles')
-        else:
-            print('No database file found')
-        "
+                analytics['by_source_type'] = source_counts.to_dict('records')
+                
+                category_counts = pd.read_sql_query('''
+                    SELECT category, COUNT(*) as count
+                    FROM articles GROUP BY category
+                ''', conn)
+                analytics['by_category'] = category_counts.to_dict('records')
+                
+                top_articles = pd.read_sql_query('''
+                    SELECT title, source_name, relevance_score, published
+                    FROM articles ORDER BY relevance_score DESC LIMIT 20
+                ''', conn)
+                analytics['top_articles'] = top_articles.to_dict('records')
+                
+                daily_counts = pd.read_sql_query('''
+                    SELECT DATE(published) as date, COUNT(*) as count
+                    FROM articles GROUP BY DATE(published)
+                    ORDER BY date DESC LIMIT 90
+                ''', conn)
+                analytics['daily_article_counts'] = daily_counts.to_dict('records')
+                
+                analytics['export_timestamp'] = datetime.now().isoformat()
+                analytics['total_articles'] = len(articles_df)
+                analytics['recent_articles'] = len(recent_df)
+                
+                with open('exports/analytics_summary.json', 'w') as f:
+                    json.dump(analytics, f, indent=2, default=str)
+                
+                conn.close()
+                print(f'✓ Export completed: {len(articles_df)} total articles')
+                return True
+                
+            except Exception as e:
+                print(f'Error during export: {e}')
+                return False
+        
+        if __name__ == "__main__":
+            success = export_data()
+            sys.exit(0 if success else 1)
+        EOF
     
-    - name: Upload database artifact
+    - name: Export analysis data
+      run: python export_data.py
+    
+    - name: List generated files
+      run: |
+        echo "Generated files:"
+        ls -la biotech_updates.db 2>/dev/null || echo "No database file"
+        echo "Exports directory:"
+        ls -la exports/ 2>/dev/null || echo "No exports directory"
+        echo "Logs directory:"
+        ls -la logs/ 2>/dev/null || echo "No logs directory"
+    
+    - name: Upload database artifact (versioned)
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -135,7 +212,7 @@ jobs:
         retention-days: 90
         if-no-files-found: warn
     
-    - name: Upload latest database (always accessible)
+    - name: Upload database artifact (latest)
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -144,7 +221,7 @@ jobs:
         retention-days: 90
         if-no-files-found: warn
     
-    - name: Upload CSV exports
+    - name: Upload CSV exports (versioned)
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -153,7 +230,7 @@ jobs:
         retention-days: 90
         if-no-files-found: warn
     
-    - name: Upload latest exports (always accessible)
+    - name: Upload CSV exports (latest)
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -171,25 +248,61 @@ jobs:
         retention-days: 30
         if-no-files-found: warn
     
-    - name: Create run summary
+    - name: Create workflow summary
       if: always()
       run: |
-        echo "## Biotech Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## 📊 Biotech Update Summary" >> $GITHUB_STEP_SUMMARY
         echo "**Run Number:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
         echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         
+        # Database info
         if [ -f "biotech_updates.db" ]; then
-          DB_SIZE=$(stat -f%z "biotech_updates.db" 2>/dev/null || stat -c%s "biotech_updates.db" 2>/dev/null || echo "unknown")
-          echo "**Database Size:** ${DB_SIZE} bytes" >> $GITHUB_STEP_SUMMARY
+          DB_SIZE=$(stat -c%s "biotech_updates.db" 2>/dev/null || stat -f%z "biotech_updates.db" 2>/dev/null || echo "unknown")
+          echo "### 💾 Database" >> $GITHUB_STEP_SUMMARY
+          echo "- **File:** biotech_updates.db" >> $GITHUB_STEP_SUMMARY
+          echo "- **Size:** ${DB_SIZE} bytes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ⚠️ Database" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** No database file created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
         fi
         
+        # Analytics info
         if [ -f "exports/analytics_summary.json" ]; then
-          echo "**Analytics Available:** Yes" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 Analytics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** Available in exports" >> $GITHUB_STEP_SUMMARY
+          
+          # Try to extract some basic stats
+          python3 -c "
+          import json
+          try:
+              with open('exports/analytics_summary.json', 'r') as f:
+                  data = json.load(f)
+              print(f'- **Total Articles:** {data.get(\"total_articles\", \"Unknown\")}')
+              print(f'- **Recent Articles:** {data.get(\"recent_articles\", \"Unknown\")}')
+          except:
+              print('- **Details:** Could not parse analytics')
+          " >> $GITHUB_STEP_SUMMARY || echo "- **Details:** Analytics file exists but could not parse" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### 📈 Analytics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** No analytics generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
         fi
         
-        echo "**Artifacts Created:**" >> $GITHUB_STEP_SUMMARY
-        echo "- biotech-database-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-        echo "- biotech-exports-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-        echo "- biotech-logs-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-        echo "- biotech-database-latest (always current)" >> $GITHUB_STEP_SUMMARY
-        echo "- biotech-exports-latest (always current)" >> $GITHUB_STEP_SUMMARY
+        # Artifacts info
+        echo "### 📦 Artifacts Created" >> $GITHUB_STEP_SUMMARY
+        echo "**Versioned (Run #${{ github.run_number }}):**" >> $GITHUB_STEP_SUMMARY
+        echo "- \`biotech-database-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- \`biotech-exports-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- \`biotech-logs-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Always Current:**" >> $GITHUB_STEP_SUMMARY
+        echo "- \`biotech-database-latest\`" >> $GITHUB_STEP_SUMMARY
+        echo "- \`biotech-exports-latest\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "💡 Download artifacts from the **Artifacts** section below." >> $GITHUB_STEP_SUMMARY
