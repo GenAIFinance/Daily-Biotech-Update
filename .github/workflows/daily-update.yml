@@ -28,6 +28,7 @@ jobs:
         SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         REPORT_SENDER: ${{ secrets.REPORT_SENDER }}
         REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS }}
+        REPORT_BCC: ${{ secrets.REPORT_BCC }}
         REPORT_SUBJECT: "Daily Biotech Update - {date}"
         SOURCES_FILE: "data_sources.json"
         ENABLE_CLINICAL_TRIALS: true
